@@ -10,9 +10,12 @@ from app.users.router import auth_router, users_router
 import app.users.models  # noqa: F401
 import app.catalog.models  # noqa: F401
 import app.orders.models  # noqa: F401
-
+from app.core.exceptions import global_exception_handler
 
 app = FastAPI(title="Caixa Mágica API", version="0.1.0")
+
+# Captura qualquer exceção base do Python (Exception) que não foi tratada
+app.add_exception_handler(Exception, global_exception_handler)
 
 app.add_middleware(
     CORSMiddleware,
