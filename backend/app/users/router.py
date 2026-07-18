@@ -1,15 +1,19 @@
-from fastapi import APIRouter, status, Depends, Query, HTTPException
+from fastapi import APIRouter, status, Depends, Query, HTTPException, Request
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 
 from app.core.security import get_current_user 
 
 from app.database import get_db  
-from app.users.schemas import UserCreate, AdminUserPaginatedResponse, UserOut, LoginRequest, TokenOut, AddressCreate, AddressOut, OrderHistoryPaginatedResponse, AddressOut, AdminOrderPaginatedResponse
+from app.users.schemas import UserCreate, AdminUserPaginatedResponse, UserOut, LoginRequest, TokenOut, AddressCreate, AddressOut, OrderHistoryPaginatedResponse, AdminOrderPaginatedResponse
 from app.users.service import UserService
-# --------------------------------------------------------------------- import para utilizar o botão de autenticação do swagger:
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 auth_router = APIRouter(prefix="/auth", tags=["Usuários"])
 users_router = APIRouter(prefix="/usuarios", tags=["Usuários"])
@@ -51,7 +55,11 @@ async def register_admin_master(data: UserCreate, db: AsyncSession = Depends(get
     response_model=TokenOut, 
     status_code=status.HTTP_200_OK
 )
-async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):  # <- Mudou aqui
+@limiter.limit("5/minute")
+async def login(
+    request: Request,
+    data: LoginRequest, 
+    db: AsyncSession = Depends(get_db)):  # <- Mudou aqui
     user_service = UserService(db)
     
     token_response = await user_service.authenticate(data)
@@ -64,7 +72,9 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):  # <- M
     status_code=status.HTTP_200_OK,
     include_in_schema=True 
 )
+@limiter.limit("5/minute")
 async def login_swagger(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: AsyncSession = Depends(get_db)
 ):
