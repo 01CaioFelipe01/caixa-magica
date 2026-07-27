@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from app.config import settings
 
@@ -21,13 +22,15 @@ _async_session_factory = None
 def _get_engine():
     global _engine
     if _engine is None:
+        # NullPool: em serverless (Vercel) o processo Python nao persiste entre
+        # invocacoes. Manter um pool em memoria e contraproducente e esgota o
+        # limite de conexoes do Postgres, ja que cada cold start abre conexoes
+        # que nunca sao reaproveitadas.
         _engine = create_async_engine(
             settings.DATABASE_URL,
+            poolclass=NullPool,
             echo=False,
             future=True,
-            pool_pre_ping=True,
-            pool_size=1,
-            max_overflow=0,
         )
     return _engine
 
