@@ -14,7 +14,7 @@ export function useCategories() {
         setLoading(true);
         setError(null);
         const data = await getCategories();
-        if (active) setCategories(data);
+        if (active) setCategories(data ?? []);
       } catch (err) {
         if (active) setError(err);
       } finally {

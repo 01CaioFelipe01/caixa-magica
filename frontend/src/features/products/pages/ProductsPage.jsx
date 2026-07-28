@@ -16,7 +16,7 @@ export default function ProductsPage() {
 
   const { products, loading, error } = useProducts();
   const { categories } = useCategories();
-  const ageRanges = [...new Set(products.map((product) => product.age_range).filter(Boolean))];
+  const ageRanges = [...new Set((products ?? []).map((product) => product.age_range).filter(Boolean))];
 
   const produtosFiltrados = filterProducts(products, { busca, categoria, faixaEtaria });
 
@@ -46,7 +46,7 @@ export default function ProductsPage() {
 
           <select className="field-control" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
             <option value="Todos">Todas as categorias</option>
-            {categories.map(cat => (
+            {(categories ?? []).map(cat => (
               <option key={cat.id} value={cat.slug}>{cat.name}</option>
             ))}
           </select>
@@ -86,7 +86,7 @@ export default function ProductsPage() {
       )}
 
       <div className="grid">
-        {produtosFiltrados.map(produto => (
+        {(produtosFiltrados ?? []).map(produto => (
           <ProductCard key={produto.id} produto={produto} />
         ))}
       </div>
