@@ -14,7 +14,11 @@ export function useProducts() {
         setLoading(true);
         setError(null);
         const data = await getProducts();
-        if (active) setProducts(data);
+        if (!active) return;
+        setProducts(data ?? []);
+        if (data == null) {
+          setError(new Error("Resposta inesperada da API de produtos. Verifique a configuracao da URL do backend."));
+        }
       } catch (err) {
         if (active) setError(err);
       } finally {
