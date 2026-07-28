@@ -1,3 +1,4 @@
+import ssl
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
@@ -26,9 +27,14 @@ def _get_engine():
         # invocacoes. Manter um pool em memoria e contraproducente e esgota o
         # limite de conexoes do Postgres, ja que cada cold start abre conexoes
         # que nunca sao reaproveitadas.
+        # SSL: asyncpg nao aceita sslmode na query string (sintaxe libpq), entao
+        # o TLS e habilitado aqui via connect_args. O sslmode ja foi removido
+        # da URL em Settings.normalize_database_url.
+        ssl_context = ssl.create_default_context()
         _engine = create_async_engine(
             settings.DATABASE_URL,
             poolclass=NullPool,
+            connect_args={"ssl": ssl_context},
             echo=False,
             future=True,
         )
