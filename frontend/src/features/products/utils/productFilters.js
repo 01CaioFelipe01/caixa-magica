@@ -1,7 +1,7 @@
 export function filterProducts(products, { busca, categoria, faixaEtaria }) {
   const searchTerm = busca.trim().toLowerCase();
 
-  return products.filter(product => {
+  return (products ?? []).filter(product => {
     const categoryName = product.categories?.[0]?.name?.toLowerCase() || "";
     const matchesSearch = [product.name, product.description, categoryName]
       .filter(Boolean)
