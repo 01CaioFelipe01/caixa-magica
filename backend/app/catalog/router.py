@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.catalog.service import CatalogService
 from datetime import date
@@ -29,8 +30,13 @@ router = APIRouter(
     tags=["Catálogo"]
 )
 
-product_uploads_dir = Path(__file__).resolve().parent.parent.parent / "uploads" / "products"
-product_uploads_dir.mkdir(parents=True, exist_ok=True)
+product_uploads_dir = Path(settings.UPLOADS_DIR) / "products"
+try:
+    product_uploads_dir.mkdir(parents=True, exist_ok=True)
+except OSError:
+    # Filesystem somente leitura (ambiente serverless).
+    # Uploads locais ficam indisponiveis; imagens devem vir por URL externa.
+    pass
 
 
 # -------------------------------------------------------------------------
