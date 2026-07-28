@@ -16,8 +16,12 @@ import app.orders.models  # noqa: F401
 
 app = FastAPI(title="Caixa Mágica API", version="0.1.0")
 
-uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-uploads_dir.mkdir(parents=True, exist_ok=True)
+uploads_dir = Path(settings.UPLOADS_DIR)
+try:
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+except OSError:
+    # Filesystem somente leitura (ambiente serverless): segue sem mount.
+    pass
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,7 +35,8 @@ app.include_router(catalog_router, prefix="/api/v1")
 app.include_router(orders_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+if uploads_dir.is_dir():
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 
 @app.get("/health", tags=["Health"])
